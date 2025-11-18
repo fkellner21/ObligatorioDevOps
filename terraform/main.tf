@@ -270,7 +270,7 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = var.container_name
+      name      = var.ecr_repository_name_product_service
       image     = "${aws_ecr_repository.product_service.repository_url}:latest"
       essential = true
       portMappings = [
@@ -290,7 +290,7 @@ resource "aws_ecs_task_definition" "app" {
       }
     },
     {
-      name      = var.container_name
+      name      = var.ecr_repository_name_api_gateway
       image     = "${aws_ecr_repository.api_gateway.repository_url}:latest"
       essential = true
       portMappings = [
@@ -310,7 +310,7 @@ resource "aws_ecs_task_definition" "app" {
       }
     },
     {
-      name      = var.container_name
+      name      = var.ecr_repository_name_inventory_service
       image     = "${aws_ecr_repository_inventory_service.repository_url}:latest"
       essential = true
       portMappings = [
