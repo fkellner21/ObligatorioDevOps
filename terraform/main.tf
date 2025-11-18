@@ -262,30 +262,33 @@ resource "aws_cloudwatch_log_group" "ecs" {
 # ECS Task Definition
 resource "aws_ecs_task_definition" "api_gateway" {
   family                   = "api-gateway"
-  requires_compatibilities = ["EC2"]
-  network_mode             = "bridge"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
 
+  execution_role_arn = data.aws_iam_role.lab_role.arn
+  task_role_arn      = data.aws_iam_role.lab_role.arn
+
   container_definitions = jsonencode([
     {
-      name  = "api-gateway"
-      image = "${aws_ecr_repository.api_gateway.repository_url}:latest"
+      name      = "api-gateway"
+      image     = "${aws_ecr_repository.api_gateway.repository_url}:latest"
       essential = true
 
       portMappings = [
         {
           containerPort = 8080
-          hostPort      = 8080
+          protocol      = "tcp"
         }
       ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/api-gateway"
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs"
+          "awslogs-group"         = "/ecs/api-gateway"
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
         }
       }
     }
@@ -294,30 +297,33 @@ resource "aws_ecs_task_definition" "api_gateway" {
 
 resource "aws_ecs_task_definition" "product_service" {
   family                   = "product-service"
-  requires_compatibilities = ["EC2"]
-  network_mode             = "bridge"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
 
+  execution_role_arn = data.aws_iam_role.lab_role.arn
+  task_role_arn      = data.aws_iam_role.lab_role.arn
+
   container_definitions = jsonencode([
     {
-      name  = "product-service"
-      image = "${aws_ecr_repository.product_service.repository_url}:latest"
+      name      = "product-service"
+      image     = "${aws_ecr_repository.product_service.repository_url}:latest"
       essential = true
 
       portMappings = [
         {
           containerPort = 8081
-          hostPort      = 8081
+          protocol      = "tcp"
         }
       ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/product-service"
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs"
+          "awslogs-group"         = "/ecs/product-service"
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
         }
       }
     }
@@ -326,62 +332,103 @@ resource "aws_ecs_task_definition" "product_service" {
 
 resource "aws_ecs_task_definition" "inventory_service" {
   family                   = "inventory-service"
-  requires_compatibilities = ["EC2"]
-  network_mode             = "bridge"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
 
+  execution_role_arn = data.aws_iam_role.lab_role.arn
+  task_role_arn      = data.aws_iam_role.lab_role.arn
+
   container_definitions = jsonencode([
     {
-      name  = "inventory-service"
-      image = "${aws_ecr_repository.inventory_service.repository_url}:latest"
+      name      = "inventory-service"
+      image     = "${aws_ecr_repository.inventory_service.repository_url}:latest"
       essential = true
 
       portMappings = [
         {
           containerPort = 8082
-          hostPort      = 8082
+          protocol      = "tcp"
         }
       ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/inventory-service"
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs"
+          "awslogs-group"         = "/ecs/inventory-service"
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
         }
       }
     }
   ])
 }
 
-
-# ECS Service
-resource "aws_ecs_service" "main" {
-  name            = var.ecs_service_name
+resource "aws_ecs_service" "api_gateway" {
+  name            = "api-gateway"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 2
+  task_definition = aws_ecs_task_definition.api_gateway.arn
+  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [aws_security_group.ecs_tasks.id]
     subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+    security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = true
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.app.arn
-    container_name   = var.container_name
-    container_port   = 80
+    target_group_arn = aws_lb_target_group.api_gateway.arn
+    container_name   = "api-gateway"
+    container_port   = 8080
   }
 
   depends_on = [aws_lb_listener.front_end]
+}
 
-  tags = {
-    Name = var.ecs_service_name
+resource "aws_ecs_service" "product_service" {
+  name            = "product-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.product_service.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.product_service.arn
+    container_name   = "product-service"
+    container_port   = 8081
+  }
+
+  depends_on = [aws_lb_listener.front_end]
+}
+
+resource "aws_ecs_service" "inventory_service" {
+  name            = "inventory-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.inventory_service.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.inventory_service.arn
+    container_name   = "inventory-service"
+    container_port   = 8082
+  }
+
+  depends_on = [aws_lb_listener.front_end]
 }
 
 # Data source para zonas de disponibilidad
