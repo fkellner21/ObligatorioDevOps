@@ -260,81 +260,102 @@ resource "aws_cloudwatch_log_group" "ecs" {
 }
 
 # ECS Task Definition
-resource "aws_ecs_task_definition" "app" {
-  family                   = var.ecs_service_name
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
+resource "aws_ecs_task_definition" "api_gateway" {
+  family                   = "api-gateway"
+  requires_compatibilities = ["EC2"]
+  network_mode             = "bridge"
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn       = data.aws_iam_role.lab_role.arn
 
   container_definitions = jsonencode([
     {
-      name      = var.ecr_repository_name_product_service
-      image     = "${aws_ecr_repository.product_service.repository_url}:latest"
+      name  = "api-gateway"
+      image = "${aws_ecr_repository.api_gateway.repository_url}:latest"
       essential = true
+
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
-          protocol      = "tcp"
+          containerPort = 8080
+          hostPort      = 8080
         }
       ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-    },
-    {
-      name      = var.ecr_repository_name_api_gateway
-      image     = "${aws_ecr_repository.api_gateway.repository_url}:latest"
-      essential = true
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-          protocol      = "tcp"
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-    },
-    {
-      name      = var.ecr_repository_name_inventory_service
-      image     = "${aws_ecr_repository_inventory_service.repository_url}:latest"
-      essential = true
-      portMappings = [
-        {
-          containerPort = 80
-          hostPort      = 80
-          protocol      = "tcp"
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
+          awslogs-group         = "/ecs/api-gateway"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
         }
       }
     }
   ])
-
-  tags = {
-    Name = var.ecs_service_name
-  }
 }
+
+resource "aws_ecs_task_definition" "product_service" {
+  family                   = "product-service"
+  requires_compatibilities = ["EC2"]
+  network_mode             = "bridge"
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = jsonencode([
+    {
+      name  = "product-service"
+      image = "${aws_ecr_repository.product_service.repository_url}:latest"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 8081
+          hostPort      = 8081
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/product-service"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_task_definition" "inventory_service" {
+  family                   = "inventory-service"
+  requires_compatibilities = ["EC2"]
+  network_mode             = "bridge"
+  cpu                      = "256"
+  memory                   = "512"
+
+  container_definitions = jsonencode([
+    {
+      name  = "inventory-service"
+      image = "${aws_ecr_repository.inventory_service.repository_url}:latest"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 8082
+          hostPort      = 8082
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/inventory-service"
+          awslogs-region        = var.aws_region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
 
 # ECS Service
 resource "aws_ecs_service" "main" {
