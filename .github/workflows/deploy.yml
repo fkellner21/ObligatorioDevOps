@@ -5,7 +5,6 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: my-web-app
   ECS_CLUSTER: my-cluster
   ECS_SERVICE: my-service
   CONTAINER_NAME: web-app

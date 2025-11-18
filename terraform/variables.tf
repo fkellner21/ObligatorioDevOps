@@ -4,10 +4,22 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "ecr_repository_name" {
+variable "ecr_repository_name_api_gateway" {
   description = "Name of the ECR repository"
   type        = string
-  default     = "my-web-app"
+  default     = "api-gateway"
+}
+
+variable "ecr_repository_name_product_service" {
+  description = "Name of the ECR repository"
+  type        = string
+  default     = "product-service"
+}
+
+variable "ecr_repository_name_inventory_service" {
+  description = "Name of the ECR repository"
+  type        = string
+  default     = "inventory-service"
 }
 
 variable "ecs_cluster_name" {
