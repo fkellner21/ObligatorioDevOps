@@ -271,7 +271,47 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name      = var.container_name
-      image     = "${aws_ecr_repository.app.repository_url}:latest"
+      image     = "${aws_ecr_repository_product_service.app.repository_url}:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    }
+    {
+      name      = var.container_name
+      image     = "${aws_ecr_repository_api_gateway.app.repository_url}:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    }
+    {
+      name      = var.container_name
+      image     = "${aws_ecr_repository_inventory_service.app.repository_url}:latest"
       essential = true
       portMappings = [
         {
