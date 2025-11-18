@@ -288,7 +288,7 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
-    }
+    },
     {
       name      = var.container_name
       image     = "${aws_ecr_repository_api_gateway.app.repository_url}:latest"
@@ -308,7 +308,7 @@ resource "aws_ecs_task_definition" "app" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
-    }
+    },
     {
       name      = var.container_name
       image     = "${aws_ecr_repository_inventory_service.app.repository_url}:latest"
