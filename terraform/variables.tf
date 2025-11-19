@@ -15,38 +15,38 @@ variable "ecs_cluster_name" {
 variable "ecs_service_name_api_gateway" {
   description = "ECS Service name for api-gateway"
   type        = string
-  default     = "api_gateway_service"
+  default     = "api-gateway-service"
 }
 
 variable "ecs_service_name_product_service" {
   description = "ECS Service name for product-service"
   type        = string
-  default     = "product_service"
+  default     = "product-service"
 }
 
 variable "ecs_service_name_inventory_service" {
   description = "ECS Service name for inventory-service"
   type        = string
-  default     = "inventory_service"
+  default     = "inventory-service"
 }
 
 # ECR Repository Names
 variable "ecr_repository_name_api_gateway" {
   description = "Name of API Gateway ECR repository"
   type        = string
-  default     = "api_gateway_repository"
+  default     = "api-gateway-repository"
 }
 
 variable "ecr_repository_name_product_service" {
   description = "Name of Product Service ECR repository"
   type        = string
-  default     = "product_service_repository"
+  default     = "product-service-repository"
 }
 
 variable "ecr_repository_name_inventory_service" {
   description = "Name of Inventory Service ECR repository"
   type        = string
-  default     = "inventory_service_repository"
+  default     = "inventory-service-repository"
 }
 
 # Desired count for all ECS services

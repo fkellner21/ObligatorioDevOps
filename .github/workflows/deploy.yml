@@ -6,9 +6,9 @@ on:
 env:
   AWS_REGION: us-east-1
   ECS_CLUSTER: cluster_obl_devops
-  ECS_SERVICE_API_GATEWAY: api_gateway_service
-  ECS_SERVICE_PRODUCT_SERVICE: product_service
-  ECS_SERVICE_INVENTORY_SERVICE: inventory_service
+  ECS_SERVICE_API_GATEWAY: api-gateway-service
+  ECS_SERVICE_PRODUCT_SERVICE: product-service
+  ECS_SERVICE_INVENTORY_SERVICE: inventory-service
   CONTAINER_NAME: web-app
 
 jobs:
@@ -51,30 +51,30 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/product_service:$IMAGE_TAG ./product-service
-        docker push $ECR_REGISTRY/product_service:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/product_service:$IMAGE_TAG $ECR_REGISTRY/product_service:latest
-        docker push $ECR_REGISTRY/product_service:latest
+        docker build -t $ECR_REGISTRY/product-service:$IMAGE_TAG ./product-service
+        docker push $ECR_REGISTRY/product-service:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/product-service:$IMAGE_TAG $ECR_REGISTRY/product-service:latest
+        docker push $ECR_REGISTRY/product-service:latest
 
     - name: Build and Push Inventory Service
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/inventory_service:$IMAGE_TAG ./inventory-service
-        docker push $ECR_REGISTRY/inventory_service:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/inventory_service:$IMAGE_TAG $ECR_REGISTRY/inventory_service:latest
-        docker push $ECR_REGISTRY/inventory_service:latest
+        docker build -t $ECR_REGISTRY/inventory-service:$IMAGE_TAG ./inventory-service
+        docker push $ECR_REGISTRY/inventory-service:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/inventory-service:$IMAGE_TAG $ECR_REGISTRY/inventory-service:latest
+        docker push $ECR_REGISTRY/inventory-service:latest
 
     - name: Build and Push API Gateway
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/api_gateway:$IMAGE_TAG ./api-gateway
-        docker push $ECR_REGISTRY/api_gateway:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/api_gateway:$IMAGE_TAG $ECR_REGISTRY/api_gateway:latest
-        docker push $ECR_REGISTRY/api_gateway:latest
+        docker build -t $ECR_REGISTRY/api-gateway:$IMAGE_TAG ./api-gateway
+        docker push $ECR_REGISTRY/api-gateway:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/api-gateway:$IMAGE_TAG $ECR_REGISTRY/api-gateway:latest
+        docker push $ECR_REGISTRY/api-gateway:latest
 
     - name: Update ECS Service API Gateway
       run: |
