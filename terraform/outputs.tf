@@ -3,9 +3,19 @@ output "load_balancer_url" {
   value       = aws_lb.main.dns_name
 }
 
-output "ecr_repository_url" {
+output "ecr_repository_url_api_gateway" {
   description = "URL of the ECR repository"
-  value       = aws_ecr_repository.app.repository_url
+  value       = aws_ecr_repository.api_gateway.repository_url
+}
+
+output "ecr_repository_url_product_service" {
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.product_service.repository_url
+}
+
+output "ecr_repository_url_inventory_service" {
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.inventory_service.repository_url
 }
 
 output "ecs_cluster_name" {
@@ -13,7 +23,17 @@ output "ecs_cluster_name" {
   value       = aws_ecs_cluster.main.name
 }
 
-output "ecs_service_name" {
+output "ecs_service_name_api_gateway" {
   description = "Name of the ECS service"
-  value       = aws_ecs_service.main.name
+  value       = aws_ecs_service.api_gateway.name
+}
+
+output "ecs_service_name_product_service" {
+  description = "Name of the ECS service"
+  value       = aws_ecs_service.product_service.name
+}
+
+output "ecs_service_name_inventory_service" {
+  description = "Name of the ECS service"
+  value       = aws_ecs_service.inventory_service.name
 }
