@@ -235,8 +235,61 @@ resource "aws_lb_listener" "front_end" {
   protocol          = "HTTP"
 
   default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      status_code  = "404"
+      message_body = "Not Found"
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "api_gateway" {
+  listener_arn = aws_lb_listener.front_end.arn
+  priority     = 30
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.api_gateway.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "product_service" {
+  listener_arn = aws_lb_listener.front_end.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.product_service.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/product/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "inventory_service" {
+  listener_arn = aws_lb_listener.front_end.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.inventory_service.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/inventory/*"]
+    }
   }
 }
 
