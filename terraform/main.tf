@@ -252,7 +252,7 @@ resource "aws_ecr_repository" "api_gateway" {
   force_delete = true
 
   tags = {
-    Name = var.ecr_repository_name
+    Name = var.ecr_repository_name_api_gateway
   }
 }
 
@@ -267,7 +267,7 @@ resource "aws_ecr_repository" "product_service" {
   force_delete = true
 
   tags = {
-    Name = var.ecr_repository_name
+    Name = var.ecr_repository_name_product_service
   }
 }
 
@@ -282,7 +282,7 @@ resource "aws_ecr_repository" "inventory_service" {
   force_delete = true
 
   tags = {
-    Name = var.ecr_repository_name
+    Name = var.ecr_repository_name_inventory_service
   }
 }
 
@@ -292,16 +292,6 @@ resource "aws_ecs_cluster" "main" {
 
   tags = {
     Name = var.ecs_cluster_name
-  }
-}
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.ecs_service_name}"
-  retention_in_days = 7
-
-  tags = {
-    Name = "ecs-logs"
   }
 }
 
@@ -326,14 +316,6 @@ resource "aws_ecs_task_definition" "api_gateway" {
           protocol      = "tcp"
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
     }
   ])
 
@@ -362,14 +344,6 @@ resource "aws_ecs_task_definition" "product_service" {
           protocol      = "tcp"
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
     }
   ])
 
@@ -398,14 +372,6 @@ resource "aws_ecs_task_definition" "inventory_service" {
           protocol      = "tcp"
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
     }
   ])
 
