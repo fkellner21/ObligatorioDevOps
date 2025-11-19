@@ -155,7 +155,7 @@ resource "aws_lb" "main" {
   }
 }
 
-# Target Group
+# Target Group (solo API Gateway)
 resource "aws_lb_target_group" "api_gateway" {
   name        = "tg-${var.ecs_service_name_api_gateway}"
   port        = 80
@@ -180,55 +180,7 @@ resource "aws_lb_target_group" "api_gateway" {
   }
 }
 
-resource "aws_lb_target_group" "product_service" {
-  name        = "tg-${var.ecs_service_name_product_service}"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "tg-${var.ecs_service_name_product_service}"
-  }
-}
-
-resource "aws_lb_target_group" "inventory_service" {
-  name        = "tg-${var.ecs_service_name_inventory_service}"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200"
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "tg-${var.ecs_service_name_inventory_service}"
-  }
-}
-
-# Listener
+# Listener: default fixed-response; API Gateway rule below
 resource "aws_lb_listener" "front_end" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
@@ -257,38 +209,6 @@ resource "aws_lb_listener_rule" "api_gateway" {
   condition {
     path_pattern {
       values = ["/*"]
-    }
-  }
-}
-
-resource "aws_lb_listener_rule" "product_service" {
-  listener_arn = aws_lb_listener.front_end.arn
-  priority     = 10
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.product_service.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/product/*"]
-    }
-  }
-}
-
-resource "aws_lb_listener_rule" "inventory_service" {
-  listener_arn = aws_lb_listener.front_end.arn
-  priority     = 20
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.inventory_service.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/inventory/*"]
     }
   }
 }
@@ -473,13 +393,7 @@ resource "aws_ecs_service" "product_service" {
     assign_public_ip = true
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.product_service.arn
-    container_name   = "product-service"
-    container_port   = 80
-  }
-
-  depends_on = [aws_lb_listener.front_end]
+  # No load_balancer block: internal backend service
 
   tags = {
     Name = var.ecs_service_name_product_service
@@ -499,13 +413,7 @@ resource "aws_ecs_service" "inventory_service" {
     assign_public_ip = true
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.inventory_service.arn
-    container_name   = "inventory-service"
-    container_port   = 80
-  }
-
-  depends_on = [aws_lb_listener.front_end]
+  # No load_balancer block: internal backend service
 
   tags = {
     Name = var.ecs_service_name_inventory_service
