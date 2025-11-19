@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "obls3"
+    bucket = "obl-s3"
     key    = "ecs"
     region = "us-east-1"
   }
