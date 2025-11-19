@@ -5,8 +5,10 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECS_CLUSTER: my-cluster
-  ECS_SERVICE: my-service
+  ECS_CLUSTER: cluster_obl_devops
+  ECS_SERVICE_API_GATEWAY: api_gateway_service
+  ECS_SERVICE_PRODUCT_SERVICE: product_service
+  ECS_SERVICE_INVENTORY_SERVICE: inventory_service
   CONTAINER_NAME: web-app
 
 jobs:
@@ -74,12 +76,28 @@ jobs:
         docker tag $ECR_REGISTRY/api_gateway:$IMAGE_TAG $ECR_REGISTRY/api_gateway:latest
         docker push $ECR_REGISTRY/api_gateway:latest
 
-    - name: Update ECS Service
+    - name: Update ECS Service API Gateway
       run: |
         aws ecs update-service \
           --cluster ${{ env.ECS_CLUSTER }} \
-          --service ${{ env.ECS_SERVICE }} \
+          --service ${{ env.ECS_SERVICE_API_GATEWAY }} \
           --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Update ECS Service Product Service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service ${{ env.ECS_SERVICE_PRODUCT_SERVICE }} \
+          --force-new-deployment \  
+          --region ${{ env.AWS_REGION }}
+
+    - name: Update ECS Service Inventory Service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service ${{ env.ECS_SERVICE_INVENTORY_SERVICE }} \
+          --force-new-deployment \  
           --region ${{ env.AWS_REGION }}
 
     - name: Get Load Balancer URL
