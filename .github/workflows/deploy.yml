@@ -9,7 +9,6 @@ env:
   ECS_SERVICE_API_GATEWAY: api-gateway-service
   ECS_SERVICE_PRODUCT_SERVICE: product-service
   ECS_SERVICE_INVENTORY_SERVICE: inventory-service
-  CONTAINER_NAME: web-app
 
 jobs:
   deploy:
