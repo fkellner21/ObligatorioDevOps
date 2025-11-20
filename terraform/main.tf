@@ -158,7 +158,7 @@ resource "aws_lb" "main" {
 # Target Group (solo API Gateway)
 resource "aws_lb_target_group" "api_gateway" {
   name        = "tg-${var.ecs_service_name_api_gateway}"
-  port        = 80
+  port        = 8000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
@@ -284,8 +284,8 @@ resource "aws_ecs_task_definition" "api_gateway" {
       essential   = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
           protocol      = "tcp"
         }
       ]
@@ -312,8 +312,8 @@ resource "aws_ecs_task_definition" "product_service" {
       essential   = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8002
+          hostPort      = 8002
           protocol      = "tcp"
         }
       ]
@@ -340,8 +340,8 @@ resource "aws_ecs_task_definition" "inventory_service" {
       essential   = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8001
+          hostPort      = 8001
           protocol      = "tcp"
         }
       ]
@@ -370,7 +370,7 @@ resource "aws_ecs_service" "api_gateway" {
   load_balancer {
     target_group_arn = aws_lb_target_group.api_gateway.arn
     container_name   = "api-gateway"
-    container_port   = 80
+    container_port   = 8000
   }
 
   depends_on = [aws_lb_listener.front_end]
