@@ -123,8 +123,9 @@ resource "aws_security_group" "ecs_tasks" {
 
   ingress {
     description     = "Allow traffic from ALB"
-    from_port       = 80
-    to_port         = 80
+    from_port       = 8000
+    to_port         = 8000 
+#decia 80
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
@@ -158,7 +159,8 @@ resource "aws_lb" "main" {
 # Target Group
 resource "aws_lb_target_group" "app" {
   name        = "ecs-target-group"
-  port        = 80
+  port        = 8000
+#decia 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
@@ -243,8 +245,9 @@ resource "aws_ecs_task_definition" "app" {
       essential = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
+#decia 80
           protocol      = "tcp"
         }
       ]
