@@ -326,7 +326,7 @@ resource "aws_ecs_task_definition" "product_service" {
 }
 
 resource "aws_ecs_task_definition" "inventory_service" {
-  family                   = var.ecs_service_name_inventory_service
+  family                   = "pruebaNGinx"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -335,13 +335,13 @@ resource "aws_ecs_task_definition" "inventory_service" {
 
   container_definitions = jsonencode([
     {
-      name        = "inventory-service"
-      image       = "${aws_ecr_repository.inventory_service.repository_url}:latest"
+      name        = "pruebaNGinx"
+      image       = "nginx:latest"
       essential   = true
       portMappings = [
         {
-          containerPort = 8001
-          hostPort      = 8001
+          containerPort = 80
+          hostPort      = 80
           protocol      = "tcp"
         }
       ]
@@ -349,7 +349,7 @@ resource "aws_ecs_task_definition" "inventory_service" {
   ])
 
   tags = {
-    Name = var.ecs_service_name_inventory_service
+    Name = "pruebaNGinx"
   }
 }
 
