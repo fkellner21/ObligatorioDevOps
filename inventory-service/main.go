@@ -43,10 +43,10 @@ type InventoryCreate struct {
 }
 
 func main() {
-	// PostgreSQL
+	// Conectar a PostgreSQL
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL not set")
+		dbURL = "postgres://adminPostgres:admin123@microservicesdb.chccqyuaw82v.us-east-1.rds.amazonaws.com:5432/microservicesdb?sslmode=disable"
 	}
 
 	var err error
@@ -56,18 +56,20 @@ func main() {
 	}
 	defer db.Close()
 
+	// Configurar pool de conexiones
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
+	// Verificar conexión
 	if err := db.Ping(); err != nil {
 		log.Fatal("Error pinging database:", err)
 	}
 
-	// Redis
+	// Conectar a Redis
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
-		log.Fatal("REDIS_URL not set")
+		redisURL = "localhost:6379"
 	}
 
 	redisClient = redis.NewClient(&redis.Options{
@@ -80,19 +82,22 @@ func main() {
 		MinIdleConns: 2,
 	})
 
+	// Verificar conexión a Redis
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		log.Fatal("Error connecting to Redis:", err)
 	}
 
-	log.Println("Inventory Service started")
+	log.Println("✅ Inventory Service started successfully")
 
-	// Router
 	r := chi.NewRouter()
+
+	// Middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.SetHeader("Content-Type", "application/json"))
 
+	// Routes
 	r.Get("/health", healthCheck)
 	r.Get("/inventory", getInventoryList)
 	r.Get("/inventory/{id}", getInventory)
@@ -101,7 +106,7 @@ func main() {
 	r.Put("/inventory/{id}", updateInventory)
 	r.Delete("/inventory/{id}", deleteInventory)
 
-	log.Println("Listening on :8002")
+	log.Println("🚀 Server listening on :8002")
 	if err := http.ListenAndServe(":8002", r); err != nil {
 		log.Fatal(err)
 	}
@@ -118,6 +123,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 func getInventoryList(w http.ResponseWriter, r *http.Request) {
 	cacheKey := "inventory:all"
 
+	// Intentar obtener del cache
 	cached, err := redisClient.Get(ctx, cacheKey).Result()
 	if err == nil {
 		w.Write([]byte(cached))
@@ -142,7 +148,10 @@ func getInventoryList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, _ := json.Marshal(inventories)
+
+	// Guardar en cache por 5 minutos
 	redisClient.Set(ctx, cacheKey, response, 5*time.Minute)
+
 	w.Write(response)
 }
 
@@ -156,6 +165,7 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 
 	cacheKey := fmt.Sprintf("inventory:%d", id)
 
+	// Intentar obtener del cache
 	cached, err := redisClient.Get(ctx, cacheKey).Result()
 	if err == nil {
 		w.Write([]byte(cached))
@@ -178,7 +188,10 @@ func getInventory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, _ := json.Marshal(inv)
+
+	// Guardar en cache por 5 minutos
 	redisClient.Set(ctx, cacheKey, response, 5*time.Minute)
+
 	w.Write(response)
 }
 
@@ -192,6 +205,7 @@ func getInventoryByProduct(w http.ResponseWriter, r *http.Request) {
 
 	cacheKey := fmt.Sprintf("inventory:product:%d", productID)
 
+	// Intentar obtener del cache
 	cached, err := redisClient.Get(ctx, cacheKey).Result()
 	if err == nil {
 		w.Write([]byte(cached))
@@ -214,7 +228,10 @@ func getInventoryByProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, _ := json.Marshal(inv)
+
+	// Guardar en cache por 5 minutos
 	redisClient.Set(ctx, cacheKey, response, 5*time.Minute)
+
 	w.Write(response)
 }
 
@@ -236,6 +253,7 @@ func createInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Invalidar todos los caches relacionados
 	invalidateInventoryCaches(inv.ProductID, newInv.ID)
 
 	w.WriteHeader(http.StatusCreated)
@@ -256,6 +274,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Obtener product_id actual
 	var productID int
 	err = db.QueryRow("SELECT product_id FROM inventory WHERE id = $1", id).Scan(&productID)
 	if err == sql.ErrNoRows {
@@ -288,6 +307,7 @@ func updateInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Invalidar caches
 	redisClient.Del(ctx, fmt.Sprintf("inventory:%d", id))
 	redisClient.Del(ctx, "inventory:all")
 	redisClient.Del(ctx, fmt.Sprintf("inventory:product:%d", productID))
@@ -315,20 +335,27 @@ func deleteInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Invalidar caches
 	redisClient.Del(ctx, fmt.Sprintf("inventory:%d", id))
 	redisClient.Del(ctx, "inventory:all")
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Función helper para invalidar todos los caches relacionados
 func invalidateInventoryCaches(productID, inventoryID int) {
+	// Caches de inventory service
 	redisClient.Del(ctx, fmt.Sprintf("inventory:%d", inventoryID))
 	redisClient.Del(ctx, "inventory:all")
 	redisClient.Del(ctx, fmt.Sprintf("inventory:product:%d", productID))
 
+	// Caches del API Gateway (productos con inventario)
 	redisClient.Del(ctx, fmt.Sprintf("gateway:product_full:%d", productID))
 	redisClient.Del(ctx, "gateway:products_full:all")
 
+	// Caches del product service
 	redisClient.Del(ctx, fmt.Sprintf("product:%d", productID))
 	redisClient.Del(ctx, "products:all")
+
+	log.Printf("Cache invalidated for product_id=%d, inventory_id=%d", productID, inventoryID)
 }
