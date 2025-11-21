@@ -75,16 +75,15 @@ resource "aws_security_group" "db" {
 
 # Security Group para Redis
 resource "aws_security_group" "redis" {
-  name        = "redis-sg"
-  description = "Allow Redis from ECS tasks"
-  vpc_id      = aws_vpc.main.id
+  name        = "${var.project_prefix}-redis-sg"
+  description = "Security group for Redis"
+  vpc_id      = var.vpc_id
 
   ingress {
-    description     = "Redis from ECS tasks"
-    from_port       = 6379
-    to_port         = 6379
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = var.private_cidrs
   }
 
   egress {
@@ -93,9 +92,8 @@ resource "aws_security_group" "redis" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = { Name = "redis-sg" }
 }
+
 resource "aws_db_subnet_group" "main" {
   name       = "rds-subnet-group"
   subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
@@ -122,25 +120,32 @@ resource "aws_db_instance" "postgres" {
   tags = { Name = "${var.project_prefix}-postgres" }
 }
 resource "aws_elasticache_subnet_group" "redis" {
-  name       = "${var.project_prefix}-redis-subnet-group"
-  subnet_ids = [aws_subnet.private_1.id, aws_subnet.private_2.id]
-  tags = { Name = "${var.project_prefix}-redis-subnet-group" }
+  name       = "${var.project_prefix}-redis-subnets"
+  subnet_ids = var.private_subnets
 }
+
 
 resource "aws_elasticache_replication_group" "redis" {
-  replication_group_id          = "${var.project_prefix}-redis"
-  replication_group_description = "Redis for ${var.project_prefix}"
-  node_type                     = var.redis_node_type
-  number_cache_clusters         = 1
-  automatic_failover_enabled    = false
-  subnet_group_name             = aws_elasticache_subnet_group.redis.name
-  security_group_ids            = [aws_security_group.redis.id]
-  engine                        = "redis"
-  engine_version                = "7.0"
-  apply_immediately             = true
+  replication_group_id = "${var.project_prefix}-redis"
+  description          = "Redis replication group for ${var.project_prefix}"
 
-  tags = { Name = "${var.project_prefix}-redis" }
+  engine               = "redis"
+  engine_version       = "7.1"
+  node_type            = "cache.t3.micro"
+
+  num_node_groups      = 1
+  replicas_per_node_group = 0
+
+  automatic_failover_enabled = false
+  multi_az_enabled           = false
+
+  at_rest_encryption_enabled  = true
+  transit_encryption_enabled  = true
+
+  security_group_ids = [aws_security_group.redis.id]
+  subnet_group_name  = aws_elasticache_subnet_group.redis.name
 }
+
 
 output "rds_endpoint" {
   value = aws_db_instance.postgres.address
