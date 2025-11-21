@@ -186,7 +186,10 @@ resource "aws_lb_listener" "front_end" {
   port              = "80"
   protocol          = "HTTP"
 
-
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api_gateway.arn
+  }
   
 }
 
@@ -277,8 +280,8 @@ container_definitions = jsonencode([
       essential   = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8000
+          hostPort      = 8000
           protocol      = "tcp"
         }
       ]
@@ -383,8 +386,8 @@ resource "aws_ecs_service" "api_gateway" {
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
-    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
-    assign_public_ip = true
+    subnets          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -409,8 +412,8 @@ resource "aws_ecs_service" "product_service" {
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
-    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
-    assign_public_ip = true
+    subnets          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    assign_public_ip = false
   }
 
   # No load_balancer block: internal backend service
@@ -429,8 +432,8 @@ resource "aws_ecs_service" "inventory_service" {
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_tasks.id]
-    subnets          = [aws_subnet.public_1.id, aws_subnet.public_2.id]
-    assign_public_ip = true
+    subnets          = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    assign_public_ip = false
   }
 
   # No load_balancer block: internal backend service
