@@ -186,15 +186,8 @@ resource "aws_lb_listener" "front_end" {
   port              = "80"
   protocol          = "HTTP"
 
-  default_action {
-    type = "fixed-response"
 
-    fixed_response {
-      content_type = "text/plain"
-      status_code  = "404"
-      message_body = "Not Found"
-    }
-  }
+  
 }
 
 resource "aws_lb_listener_rule" "api_gateway" {
@@ -284,8 +277,8 @@ container_definitions = jsonencode([
       essential   = true
       portMappings = [
         {
-          containerPort = 8000
-          hostPort      = 8000
+          containerPort = 80
+          hostPort      = 80
           protocol      = "tcp"
         }
       ]
