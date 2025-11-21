@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "obl-s3v2"
+    bucket = "obl-s3"
     key    = "ecs"
     region = "us-east-1"
   }
@@ -326,7 +326,7 @@ resource "aws_ecs_task_definition" "product_service" {
 }
 
 resource "aws_ecs_task_definition" "inventory_service" {
-  family                   = "pruebaNGinx"
+  family                   = var.ecs_service_name_inventory_service
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -335,13 +335,13 @@ resource "aws_ecs_task_definition" "inventory_service" {
 
   container_definitions = jsonencode([
     {
-      name        = "pruebaNGinx"
-      image       = "nginx:latest"
+      name        = "inventory-service"
+      image       = "${aws_ecr_repository.inventory_service.repository_url}:latest"
       essential   = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 8001
+          hostPort      = 8001
           protocol      = "tcp"
         }
       ]
@@ -349,7 +349,7 @@ resource "aws_ecs_task_definition" "inventory_service" {
   ])
 
   tags = {
-    Name = "pruebaNGinx"
+    Name = var.ecs_service_name_inventory_service
   }
 }
 
