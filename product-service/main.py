@@ -35,7 +35,8 @@ redis_client = None
 async def lifespan(app: FastAPI):
     global db_pool, redis_client
     # Startup
-    database_url = os.getenv("DATABASE_URL", "postgresql://admin:admin123@localhost:5432/microservices_db")
+
+    database_url = os.getenv("DATABASE_URL", "postgres://adminPostgres:admin123@microservicesdb.chccqyuaw82v.us-east-1.rds.amazonaws.com:5432/microservicesdb")
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
     
     db_pool = await asyncpg.create_pool(database_url, min_size=2, max_size=10)
