@@ -46,7 +46,7 @@ func main() {
 	// Conectar a PostgreSQL
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://adminPostgres:admin123@microservicesdb.chccqyuaw82v.us-east-1.rds.amazonaws.com:5432/microservicesdb?sslmode=disable"
+		dbURL = "postgres://admin:admin123@localhost:5432/microservices_db?sslmode=disable"
 	}
 
 	var err error
