@@ -277,7 +277,7 @@ resource "aws_ecs_task_definition" "api_gateway" {
   memory                   = "512"
   execution_role_arn       = data.aws_iam_role.lab_role.arn
 
-  container_definitions = jsonencode([
+container_definitions = jsonencode([
     {
       name        = "api-gateway"
       image       = "${aws_ecr_repository.api_gateway.repository_url}:latest"
@@ -288,6 +288,15 @@ resource "aws_ecs_task_definition" "api_gateway" {
           hostPort      = 8000
           protocol      = "tcp"
         }
+      ]
+      environment = [
+        { name = "DB_HOST",  value = aws_db_instance.postgres.address },
+        { name = "DB_PORT",  value = "5432" },
+        { name = "DB_NAME",  value = var.db_name },
+        { name = "DB_USER",  value = var.db_username },
+        { name = "DB_PASS",  value = var.db_password },
+        { name = "REDIS_HOST", value = aws_elasticache_replication_group.redis.primary_endpoint_address },
+        { name = "REDIS_PORT", value = "6379" }
       ]
     }
   ])
@@ -317,6 +326,15 @@ resource "aws_ecs_task_definition" "product_service" {
           protocol      = "tcp"
         }
       ]
+    environment = [
+        { name = "DB_HOST",  value = aws_db_instance.postgres.address },
+        { name = "DB_PORT",  value = "5432" },
+        { name = "DB_NAME",  value = var.db_name },
+        { name = "DB_USER",  value = var.db_username },
+        { name = "DB_PASS",  value = var.db_password },
+        { name = "REDIS_HOST", value = aws_elasticache_replication_group.redis.primary_endpoint_address },
+        { name = "REDIS_PORT", value = "6379" }
+      ]
     }
   ])
 
@@ -344,6 +362,15 @@ resource "aws_ecs_task_definition" "inventory_service" {
           hostPort      = 8001
           protocol      = "tcp"
         }
+      ]
+      environment = [
+        { name = "DB_HOST",  value = aws_db_instance.postgres.address },
+        { name = "DB_PORT",  value = "5432" },
+        { name = "DB_NAME",  value = var.db_name },
+        { name = "DB_USER",  value = var.db_username },
+        { name = "DB_PASS",  value = var.db_password },
+        { name = "REDIS_HOST", value = aws_elasticache_replication_group.redis.primary_endpoint_address },
+        { name = "REDIS_PORT", value = "6379" }
       ]
     }
   ])

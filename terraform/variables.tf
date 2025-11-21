@@ -55,3 +55,38 @@ variable "ecs_desired_count" {
   type        = number
   default     = 1
 }
+
+variable "project_prefix" {
+  type    = string
+  default = "obl"
+}
+
+variable "db_name" {
+  type    = string
+  default = "app_db"
+}
+
+variable "db_username" {
+  type    = string
+  default = "admin"
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "rds_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+
+variable "rds_allocated_storage" {
+  type    = number
+  default = 20
+}
+
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
+}
