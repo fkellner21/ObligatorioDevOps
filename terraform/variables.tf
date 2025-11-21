@@ -74,6 +74,7 @@ variable "db_username" {
 variable "db_password" {
   type      = string
   sensitive = true
+  default   = "Admin1234!"
 }
 
 variable "rds_instance_class" {
