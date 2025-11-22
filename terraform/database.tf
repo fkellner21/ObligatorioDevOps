@@ -112,7 +112,9 @@ resource "aws_lambda_function" "init_db_lambda" {
   function_name = "init-db-lambda"
   runtime       = "python3.11"
   handler       = "init.handler"
-  role          = "arn:aws:iam::975050128825:role/LabRole"
+  # === ARREGLAR Y PASARLO POR VARIABLE ===
+  # === **************************************** ===
+  role          = "arn:aws:iam::654654240405:role/LabRole"
 
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
