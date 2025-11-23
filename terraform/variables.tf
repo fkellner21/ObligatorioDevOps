@@ -90,8 +90,3 @@ variable "db_port" {
   type    = number
   default = 5432
 }
-variable "bucket_name" {
-  description = "Nombre del bucket donde almacena el tfstate"
-  type        = string
-  default     = "obl_s3v2"
-}
