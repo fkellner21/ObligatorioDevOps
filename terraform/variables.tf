@@ -66,7 +66,6 @@ variable "db_username" {
 
 variable "db_password" {
   sensitive = true
-  default   = "Admin123!"
 }
 
 variable "db_cluster_arn" {

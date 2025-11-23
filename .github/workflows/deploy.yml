@@ -50,12 +50,12 @@ jobs:
 
       - name: Terraform Plan
         working-directory: ./terraform
-        run: terraform plan
+        run: terraform plan -var "db_password=${{ secrets.DB_PASSWORD }}"
 
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply -auto-approve
-
+        run: terraform apply -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
+        
   deploy:
     needs: infraestructura
     runs-on: ubuntu-latest
