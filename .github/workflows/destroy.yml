@@ -45,7 +45,7 @@ jobs:
 
     - name: Terraform Destroy
       working-directory: ./terraform
-      run: terraform destroy -auto-approve
+      run: terraform destroy -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
 
     - name: Cleanup Complete
       run: |
