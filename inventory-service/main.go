@@ -54,7 +54,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error connecting to database:", err)
 	}
-	defer db.Close()
 
 	// Configurar pool de conexiones
 	db.SetMaxOpenConns(25)
@@ -81,7 +80,7 @@ func main() {
 		PoolSize:     10,
 		MinIdleConns: 2,
 	})
-
+	
 	// Verificar conexión a Redis
 	if err := redisClient.Ping(ctx).Err(); err != nil {
 		log.Fatal("Error connecting to Redis:", err)

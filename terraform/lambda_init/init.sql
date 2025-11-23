@@ -1,5 +1,4 @@
--- Conectar a la base de datos correcta
-\c microservices_db;
+
 
 -- Tabla de productos
 CREATE TABLE IF NOT EXISTS products (

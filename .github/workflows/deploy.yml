@@ -5,11 +5,24 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECS_CLUSTER: my-cluster
-  ECS_SERVICE: my-service
-  CONTAINER_NAME: web-app
+  ECS_CLUSTER: cluster_obl_devops
+  ECS_SERVICE_API_GATEWAY: api-gateway-service
+  ECS_SERVICE_PRODUCT_SERVICE: product-service
+  ECS_SERVICE_INVENTORY_SERVICE: inventory-service
 
 jobs:
+  test:
+    name: Test SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   deploy:
     runs-on: ubuntu-latest
     
@@ -49,36 +62,52 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/product-service:$IMAGE_TAG ./product-service
-        docker push $ECR_REGISTRY/product-service:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/product-service:$IMAGE_TAG $ECR_REGISTRY/product-service:latest
-        docker push $ECR_REGISTRY/product-service:latest
+        docker build -t $ECR_REGISTRY/product-service-repository:$IMAGE_TAG ./product-service
+        docker push $ECR_REGISTRY/product-service-repository:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/product-service-repository:$IMAGE_TAG $ECR_REGISTRY/product-service-repository:latest
+        docker push $ECR_REGISTRY/product-service-repository:latest
 
     - name: Build and Push Inventory Service
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/inventory-service:$IMAGE_TAG ./inventory-service
-        docker push $ECR_REGISTRY/inventory-service:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/inventory-service:$IMAGE_TAG $ECR_REGISTRY/inventory-service:latest
-        docker push $ECR_REGISTRY/inventory-service:latest
+        docker build -t $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG ./inventory-service
+        docker push $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG $ECR_REGISTRY/inventory-service-repository:latest
+        docker push $ECR_REGISTRY/inventory-service-repository:latest
 
     - name: Build and Push API Gateway
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/api-gateway:$IMAGE_TAG ./api-gateway
-        docker push $ECR_REGISTRY/api-gateway:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/api-gateway:$IMAGE_TAG $ECR_REGISTRY/api-gateway:latest
-        docker push $ECR_REGISTRY/api-gateway:latest
+        docker build -t $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG ./api-gateway
+        docker push $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG $ECR_REGISTRY/api-gateway-repository:latest
+        docker push $ECR_REGISTRY/api-gateway-repository:latest
 
-    - name: Update ECS Service
+    - name: Update ECS Service API Gateway
       run: |
         aws ecs update-service \
           --cluster ${{ env.ECS_CLUSTER }} \
-          --service ${{ env.ECS_SERVICE }} \
+          --service ${{ env.ECS_SERVICE_API_GATEWAY }} \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Update ECS Service Product Service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service ${{ env.ECS_SERVICE_PRODUCT_SERVICE }} \
+          --force-new-deployment \
+          --region ${{ env.AWS_REGION }}
+
+    - name: Update ECS Service Inventory Service
+      run: |
+        aws ecs update-service \
+          --cluster ${{ env.ECS_CLUSTER }} \
+          --service ${{ env.ECS_SERVICE_INVENTORY_SERVICE }} \
           --force-new-deployment \
           --region ${{ env.AWS_REGION }}
 
