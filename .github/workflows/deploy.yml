@@ -1,4 +1,4 @@
-name: Deploy
+name: Test, Infraestructura, Deploy
 
 on:
   push:
@@ -26,10 +26,39 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  deploy:
+  infraestructura:
     needs: test
     runs-on: ubuntu-latest
-    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
+
+  deploy:
+    needs: infraestructura
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v5
@@ -42,22 +71,7 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-
-    - name: Terraform Init
-      working-directory: ./terraform
-      run: terraform init
-
-    - name: Terraform Plan
-      working-directory: ./terraform
-      run: terraform plan
-
-    - name: Terraform Apply
-      working-directory: ./terraform
-      run: terraform apply -auto-approve
-
-    - name: Login to Amazon ECR
+    - name: Login Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
@@ -115,7 +129,7 @@ jobs:
           --force-new-deployment \
           --region ${{ env.AWS_REGION }}
 
-    - name: Get Load Balancer URL
+    - name: Get URL
       working-directory: ./terraform
       run: |
-        echo "🚀 Application URL: http://$(terraform output -raw load_balancer_url)"
+        echo "URL: http://$(terraform output -raw load_balancer_url)"

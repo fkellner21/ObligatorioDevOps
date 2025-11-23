@@ -107,14 +107,14 @@ data "archive_file" "lambda_zip" {
   depends_on = [null_resource.lambda_package]
 }
 
+data "aws_caller_identity" "current" {}
+
 # === 3. Lambda que usa el ZIP ya creado ===
 resource "aws_lambda_function" "init_db_lambda" {
   function_name = "init-db-lambda"
   runtime       = "python3.11"
   handler       = "init.handler"
-  # === ARREGLAR Y PASARLO POR VARIABLE ===
-  # === **************************************** ===
-  role          = "arn:aws:iam::654654240405:role/LabRole"
+  role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
 
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
