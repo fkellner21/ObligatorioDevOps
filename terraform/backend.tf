@@ -1,8 +1,8 @@
 
 terraform {
     backend "s3" {
-        bucket = "obl-s3v2"
+        bucket = var.bucket_name
         key    = "ecs"
-        region = "us-east-1"
+        region = var.aws_region
     }
 }
