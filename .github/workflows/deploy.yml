@@ -55,7 +55,12 @@ jobs:
       - name: Terraform Apply
         working-directory: ./terraform
         run: terraform apply -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
-        
+
+      - name: Get URL
+        working-directory: ./terraform
+        run: |
+          echo "URL: http://$(terraform output -raw load_balancer_url)"
+
   deploy:
     needs: infraestructura
     runs-on: ubuntu-latest
@@ -128,8 +133,3 @@ jobs:
           --service ${{ env.ECS_SERVICE_INVENTORY_SERVICE }} \
           --force-new-deployment \
           --region ${{ env.AWS_REGION }}
-
-    - name: Get URL
-      working-directory: ./terraform
-      run: |
-        echo "URL: http://$(terraform output -raw load_balancer_url)"
