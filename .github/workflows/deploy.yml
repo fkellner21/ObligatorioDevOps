@@ -1,6 +1,9 @@
-name: Deploy to AWS ECS
+name: Deploy
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -24,6 +27,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     
     steps:
