@@ -114,7 +114,7 @@ resource "aws_lambda_function" "init_db_lambda" {
   function_name = "init-db-lambda"
   runtime       = "python3.11"
   handler       = "init.handler"
-  role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
+  role          = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
 
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
@@ -157,11 +157,11 @@ resource "aws_security_group" "lambda" {
 # Ejecutar Lambda para inicializar DB
 resource "null_resource" "run_db_init" {
     depends_on = [aws_lambda_function.init_db_lambda]
- 
+
     triggers = {
-        always = timestamp()
+      rds_instance = aws_db_instance.postgres.id
     }
- 
+
     provisioner "local-exec" {
         command = "aws lambda invoke --function-name init-db-lambda output.json --region ${var.aws_region}"
     }
