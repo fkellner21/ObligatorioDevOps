@@ -2,7 +2,7 @@
 resource "aws_appautoscaling_target" "api_gateway" {
   max_capacity       = 2  
   min_capacity       = 1  
-  resource_id        = "service/$$ {aws_ecs_cluster.main.name}/ $${aws_ecs_service.api_gateway.name}"
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.api_gateway.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
@@ -29,7 +29,7 @@ resource "aws_appautoscaling_policy" "api_gateway_cpu" {
 resource "aws_appautoscaling_target" "inventory_service" {
   max_capacity       = 2
   min_capacity       = 1  
-  resource_id        = "service/$$ {aws_ecs_cluster.main.name}/ $${aws_ecs_service.inventory_service.name}"
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.inventory_service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
@@ -57,7 +57,7 @@ resource "aws_appautoscaling_policy" "inventory_service_cpu" {
 resource "aws_appautoscaling_target" "product_service" {
   max_capacity       = 2
   min_capacity       = 1  
-  resource_id        = "service/$$ {aws_ecs_cluster.main.name}/ $${aws_ecs_service.product_service.name}"
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.product_service.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
