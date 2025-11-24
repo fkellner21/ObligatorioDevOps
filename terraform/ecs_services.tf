@@ -22,6 +22,10 @@ resource "aws_ecs_service" "api_gateway" {
     tags = {
         Name = var.ecs_service_name_api_gateway
     }
+
+    lifecycle {
+        ignore_changes = [desired_count]
+    }
 }
 
 resource "aws_ecs_service" "product_service" {
@@ -40,6 +44,10 @@ resource "aws_ecs_service" "product_service" {
     tags = {
         Name = var.ecs_service_name_product_service
     }
+
+    lifecycle {
+        ignore_changes = [desired_count]
+    }
 }
 
 resource "aws_ecs_service" "inventory_service" {
@@ -57,5 +65,9 @@ resource "aws_ecs_service" "inventory_service" {
     
     tags = {
         Name = var.ecs_service_name_inventory_service
+    }
+
+    lifecycle {
+        ignore_changes = [desired_count]
     }
 }
