@@ -15,38 +15,39 @@ env:
 jobs:
   destroy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Validate confirmation
-      run: |
-        if [ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]; then
-          echo "Destruction cancelled. You must type 'destroy' to confirm."
-          exit 1
-        fi
-        echo "Confirmation received. Proceeding with infrastructure destruction..."
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]; then
+            echo "Destruction cancelled. You must type 'destroy' to confirm."
+            exit 1
+          fi
+          echo "Confirmation received. Proceeding with infrastructure destruction..."
 
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # Modificar según sea necesario:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      working-directory: ./terraform
-      run: terraform init
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
 
-    - name: Terraform Destroy
-      working-directory: ./terraform
-      run: terraform destroy -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
+      - name: Terraform Destroy
+        working-directory: ./terraform
+        run: terraform destroy -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
 
-    - name: Cleanup Complete
-      run: |
-        echo "Infrastructure destroyed successfully!"
+      - name: Cleanup Complete
+        run: |
+          echo "Infrastructure destroyed successfully!"

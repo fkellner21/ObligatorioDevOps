@@ -1,0 +1,135 @@
+name: Test, Infraestructura, Deploy _ Ambiente Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: cluster_obl_devops
+  ECS_SERVICE_API_GATEWAY: api-gateway-service
+  ECS_SERVICE_PRODUCT_SERVICE: product-service
+  ECS_SERVICE_INVENTORY_SERVICE: inventory-service
+
+jobs:
+  test:
+    name: Test SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  infraestructura:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -var "db_password=${{ secrets.DB_PASSWORD }}"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
+
+      - name: Get URL
+        working-directory: ./terraform
+        run: |
+          echo "URL: http://$(terraform output -raw load_balancer_url)"
+
+  deploy:
+    needs: infraestructura
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Product Service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/product-service-repository:$IMAGE_TAG ./product-service
+          docker push $ECR_REGISTRY/product-service-repository:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/product-service-repository:$IMAGE_TAG $ECR_REGISTRY/product-service-repository:latest
+          docker push $ECR_REGISTRY/product-service-repository:latest
+
+      - name: Build and Push Inventory Service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG ./inventory-service
+          docker push $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/inventory-service-repository:$IMAGE_TAG $ECR_REGISTRY/inventory-service-repository:latest
+          docker push $ECR_REGISTRY/inventory-service-repository:latest
+
+      - name: Build and Push API Gateway
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG ./api-gateway
+          docker push $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG $ECR_REGISTRY/api-gateway-repository:latest
+          docker push $ECR_REGISTRY/api-gateway-repository:latest
+
+      - name: Update ECS Service API Gateway
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE_API_GATEWAY }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Update ECS Service Product Service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE_PRODUCT_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Update ECS Service Inventory Service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE_INVENTORY_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
