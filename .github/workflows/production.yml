@@ -9,9 +9,7 @@ on:
 env:
   AWS_REGION: us-east-1
   ECS_CLUSTER: cluster_obl_devops
-  ECS_SERVICE_API_GATEWAY: api-gateway-service
-  ECS_SERVICE_PRODUCT_SERVICE: product-service
-  ECS_SERVICE_INVENTORY_SERVICE: inventory-service
+  ECS_SERVICE: servicios
 
 jobs:
   test:
@@ -110,26 +108,10 @@ jobs:
           docker tag $ECR_REGISTRY/api-gateway-repository:$IMAGE_TAG $ECR_REGISTRY/api-gateway-repository:latest
           docker push $ECR_REGISTRY/api-gateway-repository:latest
 
-      - name: Update ECS Service API Gateway
+      - name: Update ECS Service
         run: |
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE_API_GATEWAY }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
-
-      - name: Update ECS Service Product Service
-        run: |
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE_PRODUCT_SERVICE }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
-
-      - name: Update ECS Service Inventory Service
-        run: |
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE_INVENTORY_SERVICE }} \
+            --service ${{ env.ECS_SERVICE }} \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
