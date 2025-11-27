@@ -43,6 +43,7 @@ resource "aws_subnet" "private_1" {
     cidr_block              = "10.0.3.0/24"
     availability_zone       = data.aws_availability_zones.available.names[0]
     map_public_ip_on_launch = false
+    enable_resource_name_dns_a_record_on_launch = true
 
     tags = { Name = "ecs-private-subnet-1" }
 }
@@ -52,6 +53,7 @@ resource "aws_subnet" "private_2" {
     cidr_block              = "10.0.4.0/24"
     availability_zone       = data.aws_availability_zones.available.names[1]
     map_public_ip_on_launch = false
+    enable_resource_name_dns_a_record_on_launch = true
 
     tags = { Name = "ecs-private-subnet-2" }
 }
