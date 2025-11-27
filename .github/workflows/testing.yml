@@ -2,7 +2,8 @@ name: Test, Infraestructura, Deploy _ Ambiente Testing
 
 on:
   push:
-
+    branches:
+      - testing
   workflow_dispatch:
 
 env:
