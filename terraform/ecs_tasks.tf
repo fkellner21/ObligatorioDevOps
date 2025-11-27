@@ -49,7 +49,7 @@ resource "aws_ecs_task_definition" "tarea_principal" {
             environment = [
                 {
                     name  = "DATABASE_URL"
-                    value = "postgresql://$$ {var.db_username}: $${var.db_password}@$$ {aws_db_instance.postgres.endpoint}/ $${var.db_name}"
+                    value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
                 },
                 {
                     name  = "REDIS_URL"
@@ -80,7 +80,7 @@ resource "aws_ecs_task_definition" "tarea_principal" {
             environment = [
                 {
                     name  = "DATABASE_URL"
-                    value = "postgresql://$$ {var.db_username}: $${var.db_password}@$$ {aws_db_instance.postgres.endpoint}/ $${var.db_name}"
+                    value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}"
                 },
                 {
                     name  = "REDIS_URL"
