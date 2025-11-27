@@ -23,21 +23,6 @@ output "ecs_cluster_name" {
   value       = aws_ecs_cluster.main.name
 }
 
-output "ecs_service_name_api_gateway" {
-  description = "Name of the ECS service"
-  value       = aws_ecs_service.api_gateway.name
-}
-
-output "ecs_service_name_product_service" {
-  description = "Name of the ECS service"
-  value       = aws_ecs_service.product_service.name
-}
-
-output "ecs_service_name_inventory_service" {
-  description = "Name of the ECS service"
-  value       = aws_ecs_service.inventory_service.name
-}
-
 output "database_host" {
   value = aws_db_instance.postgres.endpoint
 }
