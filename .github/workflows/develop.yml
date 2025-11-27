@@ -2,7 +2,8 @@ name: Test, Infraestructura, Deploy _ Ambiente Develop
 
 on:
   push:
-
+    branches:
+      - develop
   workflow_dispatch:
 
 env:
