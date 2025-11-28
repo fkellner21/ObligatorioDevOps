@@ -41,8 +41,8 @@ resource "aws_ecs_task_definition" "tarea_principal" {
             essential = true
             portMappings = [
                 {
-                    containerPort = 8002
-                    hostPort      = 8002
+                    containerPort = 8001
+                    hostPort      = 8001
                     protocol      = "tcp"
                 }
             ]
@@ -72,8 +72,8 @@ resource "aws_ecs_task_definition" "tarea_principal" {
             essential = true
             portMappings = [
                 {
-                    containerPort = 8001
-                    hostPort      = 8001
+                    containerPort = 8002
+                    hostPort      = 8002
                     protocol      = "tcp"
                 }
             ]
