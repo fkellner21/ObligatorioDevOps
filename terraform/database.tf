@@ -169,7 +169,7 @@ resource "null_resource" "run_db_init" {
 
 resource "aws_db_parameter_group" "no_ssl" {
   name   = "no-ssl-pg"
-  family = "postgres17"  # Adjust to your engine version
+  family = "postgres17"
 
   parameter {
     name  = "rds.force_ssl"

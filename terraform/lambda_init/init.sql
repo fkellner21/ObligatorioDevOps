@@ -1,6 +1,4 @@
 
-
--- Tabla de productos
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -11,7 +9,6 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de inventario
 CREATE TABLE IF NOT EXISTS inventory (
     id SERIAL PRIMARY KEY,
     product_id INTEGER NOT NULL UNIQUE,
@@ -21,11 +18,9 @@ CREATE TABLE IF NOT EXISTS inventory (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Índices para optimizar consultas
 CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_inventory_product_id ON inventory(product_id);
 
--- Datos de ejemplo
 INSERT INTO products (name, description, price, category) VALUES
     ('Laptop Dell XPS 13', 'Ultrabook potente y ligera', 1299.99, 'Electronics'),
     ('Mouse Logitech MX Master', 'Mouse ergonómico inalámbrico', 99.99, 'Electronics'),
