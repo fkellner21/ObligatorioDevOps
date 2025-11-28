@@ -22,11 +22,11 @@ resource "aws_ecs_task_definition" "tarea_principal" {
             environment = [
                 { 
                     name = "PRODUCT_SERVICE_URL", 
-                    value = "http://localhost:8002" 
+                    value = "http://localhost:8001" 
                 },
                 { 
                     name = "INVENTORY_SERVICE_URL", 
-                    value = "http://localhost:8001" 
+                    value = "http://localhost:8002" 
                 },
                 {
                     name  = "REDIS_URL"
