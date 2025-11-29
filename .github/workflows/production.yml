@@ -143,4 +143,4 @@ jobs:
       - name: Run k6 test
         run: |
           echo "Testing URL: http://${{ steps.alb-url.outputs.url }}"
-          k6 run --env ALB_URL=http://${{ steps.alb-url.outputs.url }} tests/testk6.js
+          k6 run --env ALB_URL=http://${{ steps.alb-url.outputs.url }} k6/testk6.js
