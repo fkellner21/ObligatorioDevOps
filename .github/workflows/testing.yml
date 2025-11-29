@@ -141,7 +141,7 @@ jobs:
             --region ${{ env.AWS_REGION }}
 
   k6-test:
-    needs: infraestructura
+    needs: deploy
     runs-on: ubuntu-latest
 
     steps:
