@@ -68,6 +68,10 @@ jobs:
   deploy:
     needs: infraestructura
     runs-on: ubuntu-latest
+
+    outputs:
+      alb_url: ${{ needs.infraestructura.outputs.alb_url }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -135,7 +139,7 @@ jobs:
 
       - name: Run k6 test
         run: |
-          echo "Testing URL: ${{ needs.infraestructura.outputs.alb_url }}"
+          echo "Testing URL: ${{ needs.deploy.outputs.alb_url }}"
           k6 run \
-            --env ALB_URL=${{ needs.infraestructura.outputs.alb_url }} \
+            --env ALB_URL=${{ needs.deploy.outputs.alb_url }} \
             k6/testk6.js
