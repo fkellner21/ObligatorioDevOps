@@ -3,7 +3,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   threshold           = 80
-  period              = 150
+  period              = 180
   statistic           = "Average"
 
   metric_name = "CPUUtilization"
@@ -22,7 +22,7 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   threshold           = 80
-  period              = 150
+  period              = 180
   statistic           = "Average"
 
   metric_name = "MemoryUtilization"
