@@ -15,7 +15,6 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_high" {
   }
 
   alarm_description = "CPU Utilization ECS more than 80% in 2 periods"
-  alarm_actions     = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
@@ -35,7 +34,6 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_high" {
   }
 
   alarm_description = "Memory Utilization ECS more than 80% in 2 periods"
-  alarm_actions     = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_healthy_host_low" {
@@ -55,7 +53,6 @@ resource "aws_cloudwatch_metric_alarm" "alb_healthy_host_low" {
   }
 
   alarm_description = "Healthy Host Count of the Target Group is 0"
-  alarm_actions     = [aws_sns_topic.alerts.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx_high" {
@@ -74,5 +71,4 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx_high" {
   }
 
   alarm_description = "The ALB has more than 5 5XX errors in 5 minutes"
-  alarm_actions     = [aws_sns_topic.alerts.arn]
 }
