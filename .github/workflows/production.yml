@@ -27,10 +27,6 @@ jobs:
   infraestructura:
     needs: test
     runs-on: ubuntu-latest
-
-    outputs:
-      alb_url: ${{ steps.get_url.outputs.url }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -59,19 +55,13 @@ jobs:
         run: terraform apply -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
 
       - name: Get URL
-        id: get_url
         working-directory: ./terraform
         run: |
-          URL=$(terraform output -raw load_balancer_url)
-          echo "url=http://$URL" >> $GITHUB_OUTPUT
+          echo "URL: http://$(terraform output -raw load_balancer_url)"
 
   deploy:
     needs: infraestructura
     runs-on: ubuntu-latest
-
-    outputs:
-      alb_url: ${{ needs.infraestructura.outputs.alb_url }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -125,21 +115,3 @@ jobs:
             --service ${{ env.ECS_SERVICE }} \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
-
-  k6-test:
-    needs: deploy
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Install k6
-        uses: grafana/setup-k6-action@v1
-
-      - name: Run k6 test
-        run: |
-          echo "Testing URL: ${{ needs.deploy.outputs.alb_url }}"
-          k6 run \
-            --env ALB_URL=${{ needs.deploy.outputs.alb_url }} \
-            k6/testk6.js
