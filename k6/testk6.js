@@ -3,8 +3,8 @@ import { check, sleep } from "k6";
 
 export let options = {
     stages: [
-        { duration: "1m", target: 20 },
-        { duration: "3m", target: 20 },
+        { duration: "1m", target: 200 },
+        { duration: "3m", target: 500 },
         { duration: "1m", target: 0 },
     ],
     thresholds: {
@@ -16,10 +16,6 @@ export let options = {
 
 export default function () {
     const url = __ENV.ALB_URL;
-
-    if (!url) {
-        throw new Error("Missing ALB_URL env variable");
-    }
 
     const res = http.get(url);
 
