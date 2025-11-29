@@ -27,6 +27,10 @@ jobs:
   infraestructura:
     needs: test
     runs-on: ubuntu-latest
+
+    outputs:
+      alb_url: ${{ steps.get_url.outputs.url }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -55,9 +59,11 @@ jobs:
         run: terraform apply -auto-approve -var "db_password=${{ secrets.DB_PASSWORD }}"
 
       - name: Get URL
+        id: get_url
         working-directory: ./terraform
         run: |
-          echo "URL: http://$(terraform output -raw load_balancer_url)"
+          URL=$(terraform output -raw load_balancer_url)
+          echo "url=http://$URL" >> $GITHUB_OUTPUT
 
   deploy:
     needs: infraestructura
@@ -117,30 +123,19 @@ jobs:
             --region ${{ env.AWS_REGION }}
 
   k6-test:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+  needs: infraestructura
+  runs-on: ubuntu-latest
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
 
-      - name: Get ALB URL from Terraform
-        id: alb-url
-        working-directory: ./terraform
-        run: |
-          echo "url=$(terraform output -raw load_balancer_url)" >> $GITHUB_OUTPUT
+    - name: Install k6
+      uses: grafana/setup-k6-action@v1
 
-      - name: Install k6
-        uses: grafana/setup-k6-action@v1
-
-      - name: Run k6 test
-        run: |
-          echo "Testing URL: http://${{ steps.alb-url.outputs.url }}"
-          k6 run --env ALB_URL=http://${{ steps.alb-url.outputs.url }} k6/testk6.js
+    - name: Run k6 test
+      run: |
+        echo "Testing URL: ${{ needs.infraestructura.outputs.alb_url }}"
+        k6 run \
+          --env ALB_URL=${{ needs.infraestructura.outputs.alb_url }} \
+          k6/testk6.js
